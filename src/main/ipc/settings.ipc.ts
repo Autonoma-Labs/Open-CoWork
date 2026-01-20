@@ -1,49 +1,24 @@
 import { ipcMain, safeStorage, app } from 'electron'
 import { getDatabase } from '../database'
+import {
+  createSettingsService,
+  type SecureStorageBackend
+} from '../services/settings.service'
+import type { UpdateSettingsInput } from '../../shared/types'
 
-const API_KEY_KEY = 'opencowork-api-key'
+// Electron-specific secure storage implementation
+function createElectronSecureStorage(): SecureStorageBackend {
+  const getKeyPath = async () => {
+    const path = await import('path')
+    return path.join(app.getPath('userData'), '.api-key')
+  }
 
-export function registerSettingsHandlers(): void {
-  const prisma = getDatabase()
+  return {
+    isAvailable: () => safeStorage.isEncryptionAvailable(),
 
-  // Settings from database
-  ipcMain.handle('settings:get', async () => {
-    return prisma.settings.findUnique({
-      where: { id: 'default' }
-    })
-  })
-
-  ipcMain.handle(
-    'settings:update',
-    async (
-      _,
-      data: {
-        theme?: string
-        defaultModel?: string
-        analyticsOptIn?: boolean
-        onboardingComplete?: boolean
-        preferredBrowser?: string
-      }
-    ) => {
-      return prisma.settings.update({
-        where: { id: 'default' },
-        data
-      })
-    }
-  )
-
-  // Secure storage for API key
-  ipcMain.handle('settings:getApiKey', async () => {
-    try {
-      if (!safeStorage.isEncryptionAvailable()) {
-        console.warn('Encryption not available, API key storage disabled')
-        return null
-      }
-
-      // Store API key in a file in userData
+    get: async () => {
       const fs = await import('fs/promises')
-      const path = await import('path')
-      const keyPath = path.join(app.getPath('userData'), '.api-key')
+      const keyPath = await getKeyPath()
 
       const exists = await fs
         .access(keyPath)
@@ -52,45 +27,53 @@ export function registerSettingsHandlers(): void {
       if (!exists) return null
 
       const encrypted = await fs.readFile(keyPath)
-      const decrypted = safeStorage.decryptString(encrypted)
-      return decrypted
-    } catch (error) {
-      console.error('Failed to get API key:', error)
-      return null
-    }
-  })
+      return safeStorage.decryptString(encrypted)
+    },
 
-  ipcMain.handle('settings:setApiKey', async (_, key: string) => {
-    try {
-      if (!safeStorage.isEncryptionAvailable()) {
-        throw new Error('Encryption not available')
-      }
-
+    set: async (value: string) => {
       const fs = await import('fs/promises')
-      const path = await import('path')
-      const keyPath = path.join(app.getPath('userData'), '.api-key')
+      const keyPath = await getKeyPath()
 
-      const encrypted = safeStorage.encryptString(key)
+      const encrypted = safeStorage.encryptString(value)
       await fs.writeFile(keyPath, encrypted)
-    } catch (error) {
-      console.error('Failed to set API key:', error)
-      throw error
-    }
-  })
+    },
 
-  ipcMain.handle('settings:deleteApiKey', async () => {
-    try {
+    delete: async () => {
       const fs = await import('fs/promises')
-      const path = await import('path')
-      const keyPath = path.join(app.getPath('userData'), '.api-key')
+      const keyPath = await getKeyPath()
 
       await fs.unlink(keyPath).catch(() => {
         // Ignore if file doesn't exist
       })
-    } catch (error) {
-      console.error('Failed to delete API key:', error)
-      throw error
     }
+  }
+}
+
+export function registerSettingsHandlers(): void {
+  const prisma = getDatabase()
+  const secureStorage = createElectronSecureStorage()
+  const settingsService = createSettingsService(prisma, secureStorage)
+
+  // Settings from database
+  ipcMain.handle('settings:get', async () => {
+    return settingsService.get()
+  })
+
+  ipcMain.handle('settings:update', async (_, data: UpdateSettingsInput) => {
+    return settingsService.update(data)
+  })
+
+  // Secure storage for API key
+  ipcMain.handle('settings:getApiKey', async () => {
+    return settingsService.getApiKey()
+  })
+
+  ipcMain.handle('settings:setApiKey', async (_, key: string) => {
+    return settingsService.setApiKey(key)
+  })
+
+  ipcMain.handle('settings:deleteApiKey', async () => {
+    return settingsService.deleteApiKey()
   })
 
   // App paths
