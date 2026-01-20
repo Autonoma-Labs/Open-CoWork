@@ -525,6 +525,28 @@ export function registerBrowserHandlers(): void {
       }
     }
   })
+
+  // Open browser for user login - ALWAYS headful so user can interact
+  ipcMain.handle('browser:openForLogin', async (_, url: string) => {
+    try {
+      const settings = await getBrowserSettings()
+      // Always use headless: false for login so user can see and interact with the browser
+      const p = await ensureBrowser(settings.preferredBrowser || undefined, false)
+      await p.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
+
+      return {
+        success: true,
+        url: p.url(),
+        title: await p.title(),
+        message: 'Browser opened for login. The user can now log in manually.'
+      }
+    } catch (error) {
+      return {
+        error: true,
+        message: error instanceof Error ? error.message : 'Failed to open browser for login'
+      }
+    }
+  })
 }
 
 // Cleanup on app quit

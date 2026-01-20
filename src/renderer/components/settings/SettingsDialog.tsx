@@ -134,6 +134,18 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               Choose which browser profile to use for web browsing tasks. Your logins will be
               available.
             </p>
+            <div className="flex items-center gap-2 pt-2">
+              <input
+                type="checkbox"
+                id="browserHeadless"
+                checked={settings?.browserHeadless ?? false}
+                onChange={(e) => updateSettings({ browserHeadless: e.target.checked })}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <label htmlFor="browserHeadless" className="text-sm text-muted-foreground">
+                Run browser in background (headless mode)
+              </label>
+            </div>
           </div>
 
           {/* Analytics Section */}

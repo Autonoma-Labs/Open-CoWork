@@ -73,7 +73,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Welcome to Open CoWork</h1>
+          <h1 className="text-3xl font-medium" style={{ fontFamily: '"Space Mono", monospace' }}>Welcome to open co|work</h1>
           <p className="mt-2 text-muted-foreground">
             Let's get you set up in just a couple of steps
           </p>

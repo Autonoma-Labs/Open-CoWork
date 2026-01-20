@@ -201,6 +201,7 @@ interface Api {
   browserScroll: (direction: 'up' | 'down' | 'top' | 'bottom') => Promise<BrowserResult>
   browserClose: () => Promise<BrowserResult>
   browserWaitFor: (selector: string, timeout?: number) => Promise<BrowserResult>
+  browserOpenForLogin: (url: string) => Promise<BrowserResult>
 
   // Dialog
   showOpenDialog: (options: Electron.OpenDialogOptions) => Promise<Electron.OpenDialogReturnValue>

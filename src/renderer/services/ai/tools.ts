@@ -585,6 +585,59 @@ Examples of BLOCKED commands (will be rejected):
     }
   }),
 
+  requestLogin: tool({
+    description: `Ask the user to log in to a website. This opens a VISIBLE browser window where the user can manually enter their credentials and complete the login process.
+
+Use this when:
+- You need to access a website that requires authentication
+- The user asks you to do something on a site they're not logged into
+- You encounter a login page while browsing
+
+After calling this tool, WAIT for the user to confirm they've logged in before proceeding. The browser will stay open so the user can see and interact with it.`,
+    parameters: z.object({
+      url: z.string().describe('The URL of the login page (e.g., "https://twitter.com/login", "https://github.com/login")'),
+      siteName: z.string().describe('The name of the website for display purposes (e.g., "Twitter", "GitHub")')
+    }),
+    execute: async ({ url, siteName }) => {
+      try {
+        // Check if browser is configured
+        const check = await checkBrowserConfigured()
+        if (!check.configured) {
+          return {
+            error: true,
+            message: 'Browser not configured. A dialog has been shown to the user to select their preferred browser.',
+            suggestion: 'Wait for the user to select a browser, then try again.',
+            needsBrowserSetup: true
+          }
+        }
+
+        const result = await window.api.browserOpenForLogin(url)
+        if (result.error) {
+          return {
+            error: true,
+            message: result.message || 'Failed to open browser for login',
+            suggestion: 'Try again or ask the user to manually log in.'
+          }
+        }
+
+        return {
+          success: true,
+          url: result.url,
+          title: result.title,
+          message: `I've opened ${siteName} in a browser window. Please log in to your account there. Let me know when you're done logging in, and I'll continue with your request.`,
+          waitingForUser: true,
+          note: 'IMPORTANT: Wait for the user to confirm they have logged in before taking any further browser actions.'
+        }
+      } catch (error) {
+        return {
+          error: true,
+          message: error instanceof Error ? error.message : 'Failed to open login page',
+          suggestion: 'Try again or ask the user to manually log in first.'
+        }
+      }
+    }
+  }),
+
   // Skills tools - search and install skills from skillregistry.io
   searchSkills: tool({
     description: `Search for skills on skillregistry.io. Skills are pre-built automation capabilities that can help you perform tasks you couldn't do otherwise.
@@ -689,6 +742,80 @@ Use this after searching for skills and finding one that matches what the user n
           error: true,
           message: error instanceof Error ? error.message : 'Failed to install skill',
           suggestion: 'Try searching for the skill again or use the browser instead.'
+        }
+      }
+    }
+  }),
+
+  listInstalledSkills: tool({
+    description: `List all installed skills with their names and descriptions. Use this to see what skills are available before trying to use them or to check if a skill is already installed.`,
+    parameters: z.object({}),
+    execute: async () => {
+      try {
+        const skills = await window.api.getSkills()
+
+        if (skills.length === 0) {
+          return {
+            success: true,
+            skills: [],
+            count: 0,
+            message: 'No skills are currently installed. Use searchSkills to find and install skills from skillregistry.io.'
+          }
+        }
+
+        return {
+          success: true,
+          skills: skills.map((s: { id: string; name: string; description?: string | null; enabled: boolean }) => ({
+            id: s.id,
+            name: s.name,
+            description: s.description || 'No description',
+            enabled: s.enabled
+          })),
+          count: skills.length,
+          message: `Found ${skills.length} installed skill(s). Use viewSkill to see the full content of a specific skill.`
+        }
+      } catch (error) {
+        return {
+          error: true,
+          message: error instanceof Error ? error.message : 'Failed to list skills'
+        }
+      }
+    }
+  }),
+
+  viewSkill: tool({
+    description: `View the full content of an installed skill. Use this when you need to see the complete instructions for a skill to use it properly.`,
+    parameters: z.object({
+      skillName: z.string().describe('The name of the skill to view')
+    }),
+    execute: async ({ skillName }) => {
+      try {
+        const skills = await window.api.getSkills()
+        const skill = skills.find((s: { name: string }) =>
+          s.name.toLowerCase() === skillName.toLowerCase()
+        )
+
+        if (!skill) {
+          return {
+            error: true,
+            message: `Skill "${skillName}" not found.`,
+            suggestion: 'Use listInstalledSkills to see available skills, or searchSkills to find and install new ones.'
+          }
+        }
+
+        return {
+          success: true,
+          name: skill.name,
+          description: skill.description,
+          content: skill.content,
+          enabled: skill.enabled,
+          sourceUrl: skill.sourceUrl,
+          message: `Here is the full content of the "${skill.name}" skill. Follow these instructions to help the user.`
+        }
+      } catch (error) {
+        return {
+          error: true,
+          message: error instanceof Error ? error.message : 'Failed to view skill'
         }
       }
     }

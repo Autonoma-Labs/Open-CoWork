@@ -96,6 +96,7 @@ const api = {
   browserScroll: (direction: 'up' | 'down' | 'top' | 'bottom') => ipcRenderer.invoke('browser:scroll', direction),
   browserClose: () => ipcRenderer.invoke('browser:close'),
   browserWaitFor: (selector: string, timeout?: number) => ipcRenderer.invoke('browser:waitFor', selector, timeout),
+  browserOpenForLogin: (url: string) => ipcRenderer.invoke('browser:openForLogin', url),
 
   // Dialog
   showOpenDialog: (options: Electron.OpenDialogOptions) =>

@@ -307,6 +307,7 @@ export function useChat() {
         // Stream the response using the agent pattern
         const client = createOpenRouterClient(apiKey)
         let assistantContent = ''
+        let needsParagraphBreak = false // Track if we need a break after tool result
 
         // Helper function to attempt streaming (allows retry on context error)
         const attemptStream = async (
@@ -323,6 +324,11 @@ export function useChat() {
             abortSignal: abortController.signal,
 
             onText: (text) => {
+              // Add paragraph break if coming after a tool result
+              if (needsParagraphBreak && assistantContent.length > 0 && text.trim()) {
+                assistantContent += '\n\n'
+                needsParagraphBreak = false
+              }
               assistantContent += text
               updateConversationState(conversationId, {
                 streamingMessage: {
@@ -379,6 +385,9 @@ export function useChat() {
                   durationMs: Date.now() - startTime // Approximate duration
                 })
 
+                // Mark that next text should have a paragraph break
+                needsParagraphBreak = true
+
                 updateConversationState(conversationId, {
                   streamingMessage: {
                     role: 'assistant',
@@ -420,6 +429,7 @@ export function useChat() {
 
               console.log('[Context] Retrying with compacted context...')
               assistantContent = '' // Reset for retry
+              needsParagraphBreak = false // Reset paragraph break flag
               toolCallsMap.clear()
               await attemptStream(compactedHistory, compactedPrompt)
             } else {

@@ -372,7 +372,7 @@ export function ChatArea({ className }: ChatAreaProps) {
                 <div className="mb-4 flex justify-center">
                   <img src={logoImage} alt="Open CoWork" className="h-16 w-16 dark:invert" />
                 </div>
-                <h2 className="text-2xl font-semibold">Welcome to Open CoWork</h2>
+                <h2 className="text-2xl font-medium" style={{ fontFamily: '"Space Mono", monospace' }}>Welcome to open co|work</h2>
                 <p className="mt-2 text-muted-foreground">
                   Your AI assistant for exploring files, running commands, and getting things done.
                 </p>
