@@ -357,7 +357,7 @@ IMPORTANT: After calling this tool, you MUST STOP and wait for the user's respon
   }),
 
   schedule: tool({
-    description: `Create a scheduled task that runs a distilled prompt on a recurring cadence. Use this when the user asks to do something periodically (e.g., "every morning" or "every Friday"). You must provide a concise, standalone prompt and a natural language frequency description.`,
+    description: `Create a scheduled task when the user wants an action to repeat ("every morning", "each Friday", "run this weekly"). ALWAYS use this tool when the user asks to run something on a schedule. Provide a concise standalone prompt and the exact natural-language frequency. This opens a confirmation modal for the user to edit and approve.`,
     parameters: z.object({
       title: z.string().optional().describe('Short title for the schedule'),
       prompt: z.string().describe('Distilled prompt describing exactly what to do each run'),

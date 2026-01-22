@@ -168,14 +168,21 @@ export function SkillsMarketplace({ open, onOpenChange }: SkillsMarketplaceProps
                         </a>
                       </Button>
                       {isInstalled(skill.name) ? (
-                        <Button variant="outline" size="sm" disabled>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled
+                          className="h-9 rounded-full border border-input bg-muted px-4 text-sm text-muted-foreground"
+                        >
                           Installed
                         </Button>
                       ) : (
                         <Button
+                          variant="ghost"
                           size="sm"
                           onClick={() => handleInstall(skill)}
                           disabled={installingId === skill.id || isCreating}
+                          className="h-9 rounded-full border border-input bg-foreground px-4 text-sm text-background hover:bg-foreground/90"
                         >
                           {installingId === skill.id ? (
                             <Loader2 className="mr-1 h-4 w-4 animate-spin" />

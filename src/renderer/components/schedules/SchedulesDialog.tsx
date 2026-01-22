@@ -70,21 +70,34 @@ export function SchedulesDialog({ open, onOpenChange }: SchedulesDialogProps) {
         <div className="flex items-center justify-between gap-2">
           <div className="flex gap-2">
             <Button
-              variant={activeTab === 'schedules' ? 'default' : 'outline'}
+              variant="ghost"
               size="sm"
               onClick={() => setActiveTab('schedules')}
+              className={activeTab === 'schedules'
+                ? 'h-9 rounded-full bg-foreground px-4 text-sm text-background hover:bg-foreground/90'
+                : 'h-9 rounded-full border border-input px-4 text-sm text-muted-foreground hover:bg-muted hover:text-foreground'}
             >
               Schedules
             </Button>
             <Button
-              variant={activeTab === 'runs' ? 'default' : 'outline'}
+              variant="ghost"
               size="sm"
               onClick={() => setActiveTab('runs')}
+              className={activeTab === 'runs'
+                ? 'h-9 rounded-full bg-foreground px-4 text-sm text-background hover:bg-foreground/90'
+                : 'h-9 rounded-full border border-input px-4 text-sm text-muted-foreground hover:bg-muted hover:text-foreground'}
             >
               Runs
             </Button>
           </div>
-          <Button variant="outline" size="sm" onClick={openCreate}>Add schedule</Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={openCreate}
+            className="h-9 rounded-full border border-input bg-foreground px-4 text-sm text-background hover:bg-foreground/90"
+          >
+            Add schedule
+          </Button>
         </div>
 
         {activeTab === 'schedules' ? (
@@ -125,6 +138,7 @@ export function SchedulesDialog({ open, onOpenChange }: SchedulesDialogProps) {
                             data: { enabled: !schedule.enabled }
                           })}
                           title={schedule.enabled ? 'Pause schedule' : 'Resume schedule'}
+                          className="h-9 w-9 rounded-full border border-transparent hover:border-border"
                         >
                           {schedule.enabled ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         </Button>
@@ -134,6 +148,7 @@ export function SchedulesDialog({ open, onOpenChange }: SchedulesDialogProps) {
                           onClick={() => runScheduleNow(schedule.id)}
                           title="Test schedule"
                           disabled={isRunning}
+                          className="h-9 w-9 rounded-full border border-transparent hover:border-border"
                         >
                           <Beaker className="h-4 w-4" />
                         </Button>
@@ -142,6 +157,7 @@ export function SchedulesDialog({ open, onOpenChange }: SchedulesDialogProps) {
                           size="icon"
                           onClick={() => openEdit(schedule)}
                           title="Edit schedule"
+                          className="h-9 w-9 rounded-full border border-transparent hover:border-border"
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -150,6 +166,7 @@ export function SchedulesDialog({ open, onOpenChange }: SchedulesDialogProps) {
                           size="icon"
                           onClick={() => deleteSchedule(schedule.id)}
                           title="Delete schedule"
+                          className="h-9 w-9 rounded-full border border-transparent hover:border-border"
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -161,6 +178,7 @@ export function SchedulesDialog({ open, onOpenChange }: SchedulesDialogProps) {
                             setActiveTab('runs')
                           }}
                           title="View runs"
+                          className="h-9 w-9 rounded-full border border-transparent hover:border-border"
                         >
                           <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -211,9 +229,10 @@ export function SchedulesDialog({ open, onOpenChange }: SchedulesDialogProps) {
                           </span>
                           {run.conversationId && (
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
                               onClick={() => setActiveConversation(run.conversationId)}
+                              className="h-9 rounded-full border border-input bg-foreground px-4 text-sm text-background hover:bg-foreground/90"
                             >
                               Open chat
                             </Button>
