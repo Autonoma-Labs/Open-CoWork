@@ -16,6 +16,7 @@ model Conversation {
   updatedAt DateTime  @updatedAt
   messages  Message[]
   images    Image[]
+  scheduleRuns ScheduleRun[]
 }
 
 model Image {
@@ -86,4 +87,34 @@ model Settings {
   preferredBrowser   String?  // "chrome", "arc", "edge", "brave", etc.
   browserHeadless    Boolean  @default(true) // Run browser in headless mode by default
   updatedAt          DateTime @updatedAt
+}
+
+model Schedule {
+  id            String        @id @default(cuid())
+  title         String
+  prompt        String
+  frequencyText String
+  cron          String
+  timezone      String?
+  model         String
+  enabled       Boolean       @default(true)
+  lastRunAt     DateTime?
+  nextRunAt     DateTime?
+  lastStatus    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  runs          ScheduleRun[]
+}
+
+model ScheduleRun {
+  id             String       @id @default(cuid())
+  scheduleId     String
+  schedule       Schedule     @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  status         String
+  startedAt      DateTime     @default(now())
+  finishedAt     DateTime?
+  output         String?
+  error          String?
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
 }

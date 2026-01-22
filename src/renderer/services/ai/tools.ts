@@ -4,7 +4,9 @@ import { useTodoStore, type Todo, type TodoStatus } from '../../stores/todoStore
 import { useBrowserStore } from '../../stores/browserStore'
 import { useQuestionStore } from '../../stores/questionStore'
 import { useUIStore } from '../../stores/uiStore'
+import { useScheduleStore } from '../../stores/scheduleStore'
 import { queryImage as queryImageService } from './imageQuery'
+import { buildScheduleTitle } from './scheduling'
 
 // Helper to get the active conversation ID from the UI store
 function getActiveConversationId(): string | null {
@@ -349,6 +351,46 @@ IMPORTANT: After calling this tool, you MUST STOP and wait for the user's respon
         return {
           error: true,
           message: error instanceof Error ? error.message : 'Failed to display questions'
+        }
+      }
+    }
+  }),
+
+  schedule: tool({
+    description: `Create a scheduled task that runs a distilled prompt on a recurring cadence. Use this when the user asks to do something periodically (e.g., "every morning" or "every Friday"). You must provide a concise, standalone prompt and a natural language frequency description.`,
+    parameters: z.object({
+      title: z.string().optional().describe('Short title for the schedule'),
+      prompt: z.string().describe('Distilled prompt describing exactly what to do each run'),
+      frequencyText: z.string().describe('Natural language schedule (e.g., "every weekday at 9am")'),
+      cron: z.string().optional().describe('Cron expression if you already determined one'),
+      timezone: z.string().optional().describe('Timezone for the schedule (IANA name)'),
+      model: z.string().optional().describe('Model ID to run this schedule with')
+    }),
+    execute: async ({ title, prompt, frequencyText, cron, timezone, model }) => {
+      try {
+        const settings = await window.api.getSettings()
+        const fallbackModel = model || settings?.defaultModel || useUIStore.getState().selectedModel
+        const scheduleTitle = title?.trim() || buildScheduleTitle(prompt)
+        const resolvedTimezone = timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+
+        useScheduleStore.getState().openEditor({
+          title: scheduleTitle,
+          prompt,
+          frequencyText,
+          cron: cron || '',
+          timezone: resolvedTimezone,
+          model: fallbackModel,
+          enabled: true
+        })
+
+        return {
+          success: true,
+          message: 'Schedule draft created. Waiting for user confirmation.'
+        }
+      } catch (error) {
+        return {
+          error: true,
+          message: error instanceof Error ? error.message : 'Failed to create schedule draft'
         }
       }
     }

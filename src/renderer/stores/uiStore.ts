@@ -37,6 +37,7 @@ interface UIState {
   todoPanelOpen: boolean
   settingsOpen: boolean
   marketplaceOpen: boolean
+  schedulesOpen: boolean
   selectedModel: string
   customModels: ModelOption[]
   searchEnabled: boolean // Whether to use :online suffix for search-capable models
@@ -55,6 +56,8 @@ interface UIState {
   setSettingsOpen: (open: boolean) => void
   toggleMarketplace: () => void
   setMarketplaceOpen: (open: boolean) => void
+  toggleSchedules: () => void
+  setSchedulesOpen: (open: boolean) => void
   setSelectedModel: (model: string) => void
   addCustomModel: (model: ModelOption) => void
   removeCustomModel: (id: string) => void
@@ -74,6 +77,7 @@ export const useUIStore = create<UIState>()(
       todoPanelOpen: false,
       settingsOpen: false,
       marketplaceOpen: false,
+      schedulesOpen: false,
       selectedModel: 'google/gemini-3-flash-preview',
       customModels: [],
       searchEnabled: false,
@@ -121,6 +125,9 @@ export const useUIStore = create<UIState>()(
       toggleMarketplace: () => set((state) => ({ marketplaceOpen: !state.marketplaceOpen })),
       setMarketplaceOpen: (open) => set({ marketplaceOpen: open }),
 
+      toggleSchedules: () => set((state) => ({ schedulesOpen: !state.schedulesOpen })),
+      setSchedulesOpen: (open) => set({ schedulesOpen: open }),
+
       setSelectedModel: (model) => set({ selectedModel: model }),
 
       addCustomModel: (model) =>
@@ -148,6 +155,7 @@ export const useUIStore = create<UIState>()(
         customModels: state.customModels,
         sidebarOpen: state.sidebarOpen,
         todoPanelOpen: state.todoPanelOpen,
+        schedulesOpen: state.schedulesOpen,
         searchEnabled: state.searchEnabled,
         pinnedSectionCollapsed: state.pinnedSectionCollapsed
       })

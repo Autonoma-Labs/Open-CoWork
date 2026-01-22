@@ -28,7 +28,6 @@ import { QuestionSlider } from './QuestionSlider'
 import { useUIStore, modelSupportsSearch, DEFAULT_MODELS } from '../../stores/uiStore'
 import { useAttachmentStore, hashKey } from '../../stores/attachmentStore'
 import { useQuestionStore } from '../../stores/questionStore'
-import { useTodoStore } from '../../stores/todoStore'
 import { useConversation, useConversations } from '../../hooks/useConversations'
 import { useChat } from '../../hooks/useChat'
 import { generateConversationTitle } from '../../services/ai/openrouter'
@@ -60,7 +59,6 @@ export function ChatArea({ className }: ChatAreaProps) {
   const { sendMessage, stopGeneration, isLoading, streamingMessage, error } = useChat()
   const { getAttachments } = useAttachmentStore()
   const { activeQuestionSet } = useQuestionStore()
-  const { todos } = useTodoStore()
   const [input, setInput] = useState('')
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [isDragging, setIsDragging] = useState(false)
@@ -912,6 +910,11 @@ const toolDisplayInfo: Record<string, { name: string; icon: 'folder' | 'search' 
   askQuestion: {
     name: 'Asking you a question',
     icon: 'sparkles'
+  },
+  schedule: {
+    name: 'Setting up schedule',
+    icon: 'sparkles',
+    getContext: (input) => input.frequencyText as string
   },
   bash: {
     name: 'Running command',

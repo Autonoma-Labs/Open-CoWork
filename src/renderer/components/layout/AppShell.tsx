@@ -5,12 +5,24 @@ import { TodoPanel } from '../todo/TodoPanel'
 import { SettingsDialog } from '../settings/SettingsDialog'
 import { SkillsMarketplace } from '../skills/SkillsMarketplace'
 import { BrowserSelectionDialog } from '../settings/BrowserSelectionDialog'
+import { SchedulesDialog } from '../schedules/SchedulesDialog'
+import { ScheduleEditorDialog } from '../schedules/ScheduleEditorDialog'
+import { ScheduleRunner } from '../schedules/ScheduleRunner'
 import { useUIStore } from '../../stores/uiStore'
 import { useBrowserStore } from '../../stores/browserStore'
 import { cn } from '../../lib/utils'
 
 export function AppShell() {
-  const { sidebarOpen, todoPanelOpen, settingsOpen, marketplaceOpen, setSettingsOpen, setMarketplaceOpen } =
+  const {
+    sidebarOpen,
+    todoPanelOpen,
+    settingsOpen,
+    marketplaceOpen,
+    schedulesOpen,
+    setSettingsOpen,
+    setMarketplaceOpen,
+    setSchedulesOpen
+  } =
     useUIStore()
   const { showSelectionDialog, setShowSelectionDialog } = useBrowserStore()
 
@@ -40,6 +52,9 @@ export function AppShell() {
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
       <SkillsMarketplace open={marketplaceOpen} onOpenChange={setMarketplaceOpen} />
       <BrowserSelectionDialog open={showSelectionDialog} onOpenChange={setShowSelectionDialog} />
+      <SchedulesDialog open={schedulesOpen} onOpenChange={setSchedulesOpen} />
+      <ScheduleEditorDialog />
+      <ScheduleRunner />
     </div>
   )
 }

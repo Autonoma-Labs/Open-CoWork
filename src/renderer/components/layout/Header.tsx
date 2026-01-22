@@ -1,12 +1,16 @@
-import { Menu, Settings, Store, ListTodo, Bug } from 'lucide-react'
+import { Menu, Settings, Store, ListTodo, Bug, Clock } from 'lucide-react'
 import { Button } from '../ui/button'
 import { useUIStore } from '../../stores/uiStore'
+import { useSchedules } from '../../hooks/useSchedules'
 
 const DISCORD_INVITE_URL = 'https://discord.gg/4Y6jn92q'
 
 export function Header() {
-  const { toggleSidebar, toggleSettings, toggleMarketplace, toggleTodoPanel, todoPanelOpen } =
+  const { toggleSidebar, toggleSettings, toggleMarketplace, toggleTodoPanel, toggleSchedules, todoPanelOpen } =
     useUIStore()
+  const { schedules } = useSchedules()
+
+  const hasScheduleErrors = schedules.some((schedule) => schedule.lastStatus === 'error')
 
   return (
     <header className="drag-region flex h-12 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -53,6 +57,18 @@ export function Header() {
           title="Skills Marketplace"
         >
           <Store className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-8 w-8"
+          onClick={toggleSchedules}
+          title="Schedules"
+        >
+          <Clock className="h-4 w-4" />
+          {hasScheduleErrors && (
+            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
+          )}
         </Button>
         <Button
           variant="ghost"

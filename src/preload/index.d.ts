@@ -6,6 +6,8 @@ import type {
   Skill,
   Permission,
   Settings,
+  Schedule,
+  ScheduleRun,
   RegistrySkill,
   AvailableBrowser,
   DirectoryEntry,
@@ -25,6 +27,8 @@ export type {
   Skill,
   Permission,
   Settings,
+  Schedule,
+  ScheduleRun,
   RegistrySkill,
   AvailableBrowser,
   DirectoryEntry,
@@ -76,6 +80,41 @@ interface Api {
   }) => Promise<Skill>
   updateSkill: (id: string, data: { enabled?: boolean; content?: string }) => Promise<Skill>
   deleteSkill: (id: string) => Promise<void>
+
+  // Database - Schedules
+  getSchedules: () => Promise<Schedule[]>
+  getSchedule: (id: string) => Promise<Schedule | null>
+  createSchedule: (data: {
+    title: string
+    prompt: string
+    frequencyText: string
+    cron: string
+    timezone?: string | null
+    model: string
+    enabled?: boolean
+  }) => Promise<Schedule>
+  updateSchedule: (id: string, data: {
+    title?: string
+    prompt?: string
+    frequencyText?: string
+    cron?: string
+    timezone?: string | null
+    model?: string
+    enabled?: boolean
+    lastRunAt?: Date | null
+    nextRunAt?: Date | null
+    lastStatus?: string | null
+  }) => Promise<Schedule>
+  deleteSchedule: (id: string) => Promise<void>
+  getScheduleRuns: (scheduleId?: string) => Promise<Array<ScheduleRun & { schedule?: Schedule }>>
+  updateScheduleRun: (id: string, data: {
+    status?: string
+    finishedAt?: Date | null
+    output?: string | null
+    error?: string | null
+    conversationId?: string | null
+  }) => Promise<ScheduleRun>
+  runScheduleNow: (id: string) => Promise<{ success: boolean }>
 
   // Database - Permissions
   checkPermission: (path: string, operation: string) => Promise<Permission | null>
@@ -136,6 +175,18 @@ interface Api {
   // Skill Registry
   skillRegistrySearch: (query: string) => Promise<RegistrySkill[]>
   skillRegistryGetContent: (skillId: string) => Promise<string | null>
+
+  // Schedule events
+  onScheduleRun: (callback: (payload: {
+    runId: string
+    scheduleId: string
+    title: string
+    prompt: string
+    model: string
+    frequencyText: string
+    cron: string
+    timezone?: string | null
+  }) => void) => () => void
 }
 
 declare global {

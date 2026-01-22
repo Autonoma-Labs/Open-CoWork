@@ -46,6 +46,41 @@ const api = {
     ipcRenderer.invoke('db:skills:update', id, data),
   deleteSkill: (id: string) => ipcRenderer.invoke('db:skills:delete', id),
 
+  // Database - Schedules
+  getSchedules: () => ipcRenderer.invoke('db:schedules:list'),
+  getSchedule: (id: string) => ipcRenderer.invoke('db:schedules:get', id),
+  createSchedule: (data: {
+    title: string
+    prompt: string
+    frequencyText: string
+    cron: string
+    timezone?: string | null
+    model: string
+    enabled?: boolean
+  }) => ipcRenderer.invoke('db:schedules:create', data),
+  updateSchedule: (id: string, data: {
+    title?: string
+    prompt?: string
+    frequencyText?: string
+    cron?: string
+    timezone?: string | null
+    model?: string
+    enabled?: boolean
+    lastRunAt?: Date | null
+    nextRunAt?: Date | null
+    lastStatus?: string | null
+  }) => ipcRenderer.invoke('db:schedules:update', id, data),
+  deleteSchedule: (id: string) => ipcRenderer.invoke('db:schedules:delete', id),
+  getScheduleRuns: (scheduleId?: string) => ipcRenderer.invoke('db:schedules:runs:list', scheduleId),
+  updateScheduleRun: (id: string, data: {
+    status?: string
+    finishedAt?: Date | null
+    output?: string | null
+    error?: string | null
+    conversationId?: string | null
+  }) => ipcRenderer.invoke('db:schedules:runs:update', id, data),
+  runScheduleNow: (id: string) => ipcRenderer.invoke('db:schedules:runNow', id),
+
   // Database - Permissions
   checkPermission: (path: string, operation: string) =>
     ipcRenderer.invoke('permissions:check', path, operation),
@@ -127,7 +162,32 @@ const api = {
     ipcRenderer.invoke('image:getMetadata', conversationId, sequenceNum),
   updateImageDescription: (conversationId: string, sequenceNum: number, description: string) =>
     ipcRenderer.invoke('image:updateDescription', conversationId, sequenceNum, description),
-  listImages: (conversationId: string) => ipcRenderer.invoke('image:list', conversationId)
+  listImages: (conversationId: string) => ipcRenderer.invoke('image:list', conversationId),
+
+  // Schedule events
+  onScheduleRun: (callback: (payload: {
+    runId: string
+    scheduleId: string
+    title: string
+    prompt: string
+    model: string
+    frequencyText: string
+    cron: string
+    timezone?: string | null
+  }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: {
+      runId: string
+      scheduleId: string
+      title: string
+      prompt: string
+      model: string
+      frequencyText: string
+      cron: string
+      timezone?: string | null
+    }) => callback(payload)
+    ipcRenderer.on('schedule:run', listener)
+    return () => ipcRenderer.removeListener('schedule:run', listener)
+  }
 }
 
 // Expose in main world

@@ -8,7 +8,9 @@ export type {
   Skill,
   Permission,
   Settings,
-  Image
+  Image,
+  Schedule,
+  ScheduleRun
 } from '@prisma/client'
 
 // Input types for service operations

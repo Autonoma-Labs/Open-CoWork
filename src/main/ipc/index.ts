@@ -5,6 +5,7 @@ import { registerSettingsHandlers } from './settings.ipc'
 import { registerBrowserHandlers, cleanupBrowser } from './browser.ipc'
 import { registerSkillRegistryHandlers } from './skillregistry.ipc'
 import { registerImageHandlers } from './image.ipc'
+import { registerScheduleHandlers } from './schedules.ipc'
 
 export function registerIpcHandlers(): void {
   registerDatabaseHandlers()
@@ -14,6 +15,7 @@ export function registerIpcHandlers(): void {
   registerBrowserHandlers()
   registerSkillRegistryHandlers()
   registerImageHandlers()
+  registerScheduleHandlers()
 }
 
 export { cleanupBrowser }

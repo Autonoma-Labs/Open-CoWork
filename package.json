@@ -1,7 +1,7 @@
 {
   "name": "open-cowork",
   "version": "1.0.0",
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "pnpm@10.28.1",
   "description": "Desktop AI coding assistant for non-technical users",
   "author": "Autonoma <hello@getautonoma.com>",
   "homepage": "https://getautonoma.com",
@@ -44,6 +44,7 @@
     "electron-updater": "^6.1.7",
     "fast-glob": "^3.3.3",
     "lucide-react": "^0.460.0",
+    "node-schedule": "^2.1.1",
     "playwright": "^1.57.0",
     "posthog-js": "^1.181.0",
     "react-markdown": "^10.1.0",

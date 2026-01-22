@@ -5,7 +5,7 @@ export function createConversationService(prisma: PrismaClient) {
   return {
     list: () => {
       return prisma.conversation.findMany({
-        orderBy: { updatedAt: 'desc' }
+        orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }]
       })
     },
 
