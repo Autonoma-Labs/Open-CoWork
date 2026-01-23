@@ -1,4 +1,4 @@
-import { Plus, Loader2, Circle, Trash2, Pin, PinOff, Pencil, ChevronDown, ChevronRight, Check, X } from 'lucide-react'
+import { Plus, Loader2, Circle, Trash2, Pin, PinOff, Pencil, ChevronDown, ChevronRight, Check, X, Download } from 'lucide-react'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -79,6 +79,10 @@ export function Sidebar({ className }: SidebarProps) {
 
   const handleTogglePin = (conv: { id: string; pinned: boolean }) => {
     updateConversation({ id: conv.id, data: { pinned: !conv.pinned } })
+  }
+
+  const handleDownload = async (convId: string) => {
+    await window.api.exportChatAsMarkdown(convId)
   }
 
   // Separate pinned and unpinned conversations
@@ -208,6 +212,16 @@ export function Sidebar({ className }: SidebarProps) {
             ) : (
               <Pin className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
             )}
+          </button>
+          <button
+            className="p-0.5"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleDownload(conv.id)
+            }}
+            title="Download as Markdown"
+          >
+            <Download className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
           </button>
           <button
             className="p-0.5"

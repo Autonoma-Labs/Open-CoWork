@@ -141,7 +141,11 @@ const api = {
     ipcRenderer.invoke('image:getMetadata', conversationId, sequenceNum),
   updateImageDescription: (conversationId: string, sequenceNum: number, description: string) =>
     ipcRenderer.invoke('image:updateDescription', conversationId, sequenceNum, description),
-  listImages: (conversationId: string) => ipcRenderer.invoke('image:list', conversationId)
+  listImages: (conversationId: string) => ipcRenderer.invoke('image:list', conversationId),
+
+  // Export
+  exportChatAsMarkdown: (conversationId: string) =>
+    ipcRenderer.invoke('export:markdown', conversationId)
 }
 
 // Expose in main world

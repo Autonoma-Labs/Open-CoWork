@@ -182,6 +182,13 @@ interface Api {
 
   // File System (additional)
   readFileBase64: (path: string) => Promise<string>
+
+  // Export
+  exportChatAsMarkdown: (conversationId: string) => Promise<{
+    success: boolean
+    canceled?: boolean
+    filePath?: string
+  }>
 }
 
 declare global {
