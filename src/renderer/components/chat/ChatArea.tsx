@@ -22,6 +22,7 @@ import remarkGfm from 'remark-gfm'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Dialog, DialogContent } from '../ui/dialog'
 import { ChatInput, type ChatInputHandle, type Attachment } from './ChatInput'
+import { FindBar } from './FindBar'
 import { QuestionSlider } from './QuestionSlider'
 import { useUIStore, modelSupportsSearch, DEFAULT_MODELS } from '../../stores/uiStore'
 import { useAttachmentStore, hashKey } from '../../stores/attachmentStore'
@@ -50,11 +51,23 @@ export function ChatArea({ className }: ChatAreaProps) {
   const { getAttachments } = useAttachmentStore()
   const { activeQuestionSet } = useQuestionStore()
   const [isDragging, setIsDragging] = useState(false)
+  const [isFindOpen, setIsFindOpen] = useState(false)
   const dragCounterRef = useRef(0)
   const listRef = useRef<HTMLDivElement>(null)
   const isNearBottomRef = useRef(true)
   const inputRef = useRef<ChatInputHandle>(null)
-  const scrollFrameRef = useRef<number | null>(null)
+
+  // Cmd+F / Ctrl+F keyboard shortcut for find
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+        e.preventDefault()
+        setIsFindOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // Check if current model supports search
   const currentModelSupportsSearch = modelSupportsSearch(selectedModel)
@@ -230,29 +243,22 @@ export function ChatArea({ className }: ChatAreaProps) {
     return -1
   }, [allMessages])
 
-  // Throttled auto-scroll during streaming using requestAnimationFrame
+  // Track previous message count to detect new messages
+  const prevMessageCountRef = useRef(allMessages.length)
+
+  // Auto-scroll only when new messages are added (not during streaming content updates)
   useEffect(() => {
     if (!listRef.current) return
-    if (!isNearBottomRef.current) return
     if (allMessages.length === 0) return
 
-    // Cancel any pending scroll frame
-    if (scrollFrameRef.current !== null) {
-      cancelAnimationFrame(scrollFrameRef.current)
-    }
+    const isNewMessage = allMessages.length > prevMessageCountRef.current
+    prevMessageCountRef.current = allMessages.length
 
-    // Schedule scroll on next animation frame to throttle updates
-    scrollFrameRef.current = requestAnimationFrame(() => {
+    // Only auto-scroll if a new message was added AND user is near bottom
+    if (isNewMessage && isNearBottomRef.current) {
       rowVirtualizer.scrollToIndex(allMessages.length - 1, { align: 'end' })
-      scrollFrameRef.current = null
-    })
-
-    return () => {
-      if (scrollFrameRef.current !== null) {
-        cancelAnimationFrame(scrollFrameRef.current)
-      }
     }
-  }, [allMessages.length, streamingMessage?.content, rowVirtualizer])
+  }, [allMessages.length, rowVirtualizer])
 
   return (
     <div
@@ -272,6 +278,9 @@ export function ChatArea({ className }: ChatAreaProps) {
           </div>
         </div>
       )}
+
+      {/* Find bar */}
+      <FindBar isOpen={isFindOpen} onClose={() => setIsFindOpen(false)} />
 
       {/* Messages Area */}
       <div
@@ -554,13 +563,13 @@ const MessageBubble = memo(function MessageBubble({
         >
           {isUser ? (
             <div className="whitespace-pre-wrap text-base leading-relaxed">{displayContent}</div>
-            ) : (
-              <div className="prose dark:prose-invert max-w-none prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1 prose-headings:my-4 prose-p:leading-relaxed">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
-              </div>
-            )}
-          </div>
-        )}
+          ) : (
+            <div className="prose dark:prose-invert max-w-none prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1 prose-headings:my-4 prose-p:leading-relaxed">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
+            </div>
+          )}
+        </div>
+      )}
 
         {/* Message actions - show on hover */}
         <div
