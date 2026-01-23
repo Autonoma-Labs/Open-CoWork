@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, Menu, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { initDatabase, closeDatabase } from './database'
@@ -29,6 +29,88 @@ function createWindow(): void {
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
+  })
+
+  // Context menu for copy/paste
+  mainWindow.webContents.on('context-menu', (_event, params) => {
+    const menuTemplate: Electron.MenuItemConstructorOptions[] = []
+
+    // Add spelling suggestions if available
+    if (params.misspelledWord) {
+      for (const suggestion of params.dictionarySuggestions.slice(0, 5)) {
+        menuTemplate.push({
+          label: suggestion,
+          click: () => mainWindow.webContents.replaceMisspelling(suggestion)
+        })
+      }
+      if (params.dictionarySuggestions.length > 0) {
+        menuTemplate.push({ type: 'separator' })
+      }
+    }
+
+    // Standard edit operations
+    if (params.isEditable) {
+      menuTemplate.push(
+        { label: 'Cut', role: 'cut', enabled: params.editFlags.canCut },
+        { label: 'Copy', role: 'copy', enabled: params.editFlags.canCopy },
+        { label: 'Paste', role: 'paste', enabled: params.editFlags.canPaste },
+        { type: 'separator' },
+        { label: 'Select All', role: 'selectAll', enabled: params.editFlags.canSelectAll }
+      )
+    } else if (params.selectionText) {
+      // Text is selected but not in an editable field
+      menuTemplate.push(
+        { label: 'Copy', role: 'copy' },
+        { type: 'separator' },
+        { label: 'Select All', role: 'selectAll' }
+      )
+    } else {
+      // No selection, no editable - still allow select all
+      menuTemplate.push({ label: 'Select All', role: 'selectAll' })
+    }
+
+    // Only show menu if we have items
+    if (menuTemplate.length > 0) {
+      const menu = Menu.buildFromTemplate(menuTemplate)
+      menu.popup()
+    }
+  })
+
+  // Find in page handlers - need to pass text each time for proper navigation
+  let lastSearchText = ''
+
+  ipcMain.on('find:start', (_event, text: string) => {
+    if (text) {
+      lastSearchText = text
+      mainWindow.webContents.findInPage(text)
+    }
+  })
+
+  ipcMain.on('find:next', (_event, text: string) => {
+    const searchText = text || lastSearchText
+    if (searchText) {
+      mainWindow.webContents.findInPage(searchText, { forward: true, findNext: true })
+    }
+  })
+
+  ipcMain.on('find:previous', (_event, text: string) => {
+    const searchText = text || lastSearchText
+    if (searchText) {
+      mainWindow.webContents.findInPage(searchText, { forward: false, findNext: true })
+    }
+  })
+
+  ipcMain.on('find:stop', () => {
+    lastSearchText = ''
+    mainWindow.webContents.stopFindInPage('clearSelection')
+  })
+
+  // Send find results back to renderer
+  mainWindow.webContents.on('found-in-page', (_event, result) => {
+    mainWindow.webContents.send('find:result', {
+      activeMatchOrdinal: result.activeMatchOrdinal,
+      matches: result.matches
+    })
   })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {

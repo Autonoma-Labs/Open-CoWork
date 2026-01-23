@@ -136,6 +136,52 @@ interface Api {
   // Skill Registry
   skillRegistrySearch: (query: string) => Promise<RegistrySkill[]>
   skillRegistryGetContent: (skillId: string) => Promise<string | null>
+
+  // Find in page
+  findStart: (text: string) => void
+  findNext: (text: string) => void
+  findPrevious: (text: string) => void
+  findStop: () => void
+  onFindResult: (
+    callback: (result: { activeMatchOrdinal: number; matches: number }) => void
+  ) => () => void
+
+  // Image Registry
+  saveImage: (
+    conversationId: string,
+    base64Data: string,
+    mimeType: string,
+    source: 'upload' | 'screenshot' | 'viewImage',
+    meta?: { url?: string; filename?: string }
+  ) => Promise<{ sequenceNum: number }>
+  getImage: (conversationId: string, sequenceNum: number) => Promise<{ base64Data: string; mimeType: string } | null>
+  getImageMetadata: (
+    conversationId: string,
+    sequenceNum: number
+  ) => Promise<{
+    id: string
+    conversationId: string
+    sequenceNum: number
+    source: string
+    mimeType: string
+    description: string | null
+    url: string | null
+    filename: string | null
+    createdAt: Date
+  } | null>
+  updateImageDescription: (conversationId: string, sequenceNum: number, description: string) => Promise<void>
+  listImages: (conversationId: string) => Promise<
+    Array<{
+      sequenceNum: number
+      source: string
+      mimeType: string
+      description: string | null
+      createdAt: Date
+    }>
+  >
+
+  // File System (additional)
+  readFileBase64: (path: string) => Promise<string>
 }
 
 declare global {

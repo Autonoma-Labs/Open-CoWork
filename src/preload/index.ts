@@ -113,6 +113,20 @@ const api = {
   skillRegistrySearch: (query: string) => ipcRenderer.invoke('skillregistry:search', query),
   skillRegistryGetContent: (skillId: string) => ipcRenderer.invoke('skillregistry:getContent', skillId),
 
+  // Find in page
+  findStart: (text: string) => ipcRenderer.send('find:start', text),
+  findNext: (text: string) => ipcRenderer.send('find:next', text),
+  findPrevious: (text: string) => ipcRenderer.send('find:previous', text),
+  findStop: () => ipcRenderer.send('find:stop'),
+  onFindResult: (callback: (result: { activeMatchOrdinal: number; matches: number }) => void) => {
+    const handler = (
+      _event: Electron.IpcRendererEvent,
+      result: { activeMatchOrdinal: number; matches: number }
+    ) => callback(result)
+    ipcRenderer.on('find:result', handler)
+    return () => ipcRenderer.removeListener('find:result', handler)
+  },
+
   // Image Registry
   saveImage: (
     conversationId: string,
